@@ -1,9 +1,11 @@
 package com.example.getaway
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -18,7 +20,7 @@ import androidx.compose.ui.unit.sp
 class ExpenseRow {
     var item by mutableStateOf("")
     var price by mutableStateOf("")
-    var isDivide by mutableStateOf(false) // false = "×", true = "÷"
+    var isDivide by mutableStateOf(false) // false = "x", true = "/"
 }
 
 @Composable
@@ -69,14 +71,14 @@ fun InputScreen() {
 
     val persons = personCount.toIntOrNull() ?: 0
 
-    // Hitung biaya total per baris
-    fun rowTotal(row: ExpenseRow): Double {
+    fun perPerson(row: ExpenseRow): Double {
         val price = row.price.toDoubleOrNull() ?: 0.0
-        return if (row.isDivide) price else price * persons
+        return if (persons > 0) price / persons else 0.0
     }
 
-    val grandTotal = rows.sumOf { rowTotal(it) }
-    val perPerson = if (persons > 0) grandTotal / persons else 0.0
+    val grandTotal = rows.sumOf { it.price.toDoubleOrNull() ?: 0.0 }
+    val grandPerPerson = if (persons > 0) grandTotal / persons else 0.0
+    val borderColor = Color(0xFFFF6F61)
 
     Column(
         modifier = Modifier
@@ -84,17 +86,15 @@ fun InputScreen() {
             .background(MaterialTheme.colorScheme.background)
             .padding(16.dp)
     ) {
-        // Judul trip di atas-tengah
         OutlinedTextField(
             value = tripTitle,
             onValueChange = { tripTitle = it },
-            label = { Text("Nama Trip (misal: Bali)") },
+            label = { Text("Trip") },
             modifier = Modifier.fillMaxWidth(),
             textStyle = MaterialTheme.typography.titleLarge.copy(textAlign = TextAlign.Center)
         )
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Person, kecil, kiri
         OutlinedTextField(
             value = personCount,
             onValueChange = { personCount = it },
@@ -104,50 +104,42 @@ fun InputScreen() {
         Spacer(modifier = Modifier.height(16.dp))
 
         // Header tabel
-        Row(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
-            Text("Item", modifier = Modifier.weight(1.2f), fontWeight = FontWeight.Bold, fontSize = 12.sp)
-            Text("Harga", modifier = Modifier.weight(1f), fontWeight = FontWeight.Bold, fontSize = 12.sp)
-            Text("Mode", modifier = Modifier.weight(0.6f), fontWeight = FontWeight.Bold, fontSize = 12.sp)
-            Text("Hasil", modifier = Modifier.weight(1f), fontWeight = FontWeight.Bold, fontSize = 12.sp)
+        Row(modifier = Modifier.fillMaxWidth()) {
+            TableCell("Item", weight = 1.2f, isHeader = true, borderColor = borderColor)
+            TableCell("Harga", weight = 1f, isHeader = true, borderColor = borderColor)
+            TableCell("Per orang", weight = 1f, isHeader = true, borderColor = borderColor)
         }
 
-        // Baris-baris tabel
         LazyColumn(modifier = Modifier.weight(1f)) {
             items(rows) { row ->
-                Row(
-                    modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    OutlinedTextField(
-                        value = row.item,
-                        onValueChange = { row.item = it },
-                        placeholder = { Text("Surfing", fontSize = 11.sp) },
-                        modifier = Modifier.weight(1.2f).padding(end = 2.dp)
-                    )
-                    OutlinedTextField(
-                        value = row.price,
-                        onValueChange = { row.price = it },
-                        placeholder = { Text("Rp", fontSize = 11.sp) },
-                        modifier = Modifier.weight(1f).padding(end = 2.dp)
-                    )
-                    // Tombol toggle mode × / ÷
-                    OutlinedButton(
-                        onClick = { row.isDivide = !row.isDivide },
-                        contentPadding = PaddingValues(4.dp),
-                        modifier = Modifier.weight(0.6f).padding(end = 2.dp)
-                    ) {
-                        Text(if (row.isDivide) "\u00F7" else "\u00D7")
+                Row(modifier = Modifier.fillMaxWidth()) {
+                    Box(modifier = Modifier.weight(1.2f).border(1.dp, borderColor)) {
+                        BasicRowInput(
+                            value = row.item,
+                            onValueChange = { row.item = it },
+                            placeholder = "Villa"
+                        )
                     }
-                    Text(
-                        "Rp${rowTotal(row).toInt()}",
-                        modifier = Modifier.weight(1f),
-                        fontSize = 12.sp
-                    )
+                    Box(modifier = Modifier.weight(1f).border(1.dp, borderColor)) {
+                        BasicRowInput(
+                            value = row.price,
+                            onValueChange = { row.price = it },
+                            placeholder = "Rp"
+                        )
+                    }
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .border(1.dp, borderColor)
+                            .padding(vertical = 14.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text("Rp${perPerson(row).toInt()}", fontSize = 12.sp)
+                    }
                 }
             }
         }
 
-        // Tombol tambah baris
         OutlinedButton(
             onClick = { rows.add(ExpenseRow()) },
             modifier = Modifier.fillMaxWidth()
@@ -159,16 +151,48 @@ fun InputScreen() {
         HorizontalDivider()
         Spacer(modifier = Modifier.height(8.dp))
 
-        // Total keseluruhan & per orang
         Text(
             "TOTAL: Rp${grandTotal.toInt()}",
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold
         )
         Text(
-            "Per orang: Rp${perPerson.toInt()}",
+            "Per orang: Rp${grandPerPerson.toInt()}",
             style = MaterialTheme.typography.titleMedium,
             color = MaterialTheme.colorScheme.primary
         )
     }
+}
+
+@Composable
+fun RowScope.TableCell(text: String, weight: Float, isHeader: Boolean = false, borderColor: Color) {
+    Box(
+        modifier = Modifier
+            .weight(weight)
+            .border(1.dp, borderColor)
+            .padding(vertical = 8.dp, horizontal = 4.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text,
+            fontSize = 12.sp,
+            fontWeight = if (isHeader) FontWeight.Bold else FontWeight.Normal
+        )
+    }
+}
+
+@Composable
+fun BasicRowInput(value: String, onValueChange: (String) -> Unit, placeholder: String) {
+    BasicTextField(
+        value = value,
+        onValueChange = onValueChange,
+        textStyle = LocalTextStyle.current.copy(fontSize = 12.sp),
+        modifier = Modifier.fillMaxWidth().padding(8.dp),
+        decorationBox = { innerTextField ->
+            if (value.isEmpty()) {
+                Text(placeholder, fontSize = 12.sp, color = Color.Gray)
+            }
+            innerTextField()
+        }
+    )
 }
