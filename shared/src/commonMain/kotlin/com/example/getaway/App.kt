@@ -11,17 +11,23 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.foundation.layout.IntrinsicSize
-import androidx.compose.foundation.layout.fillMaxHeight
+
 class ExpenseRow {
     var item by mutableStateOf("")
     var price by mutableStateOf("")
-    var isDivide by mutableStateOf(false) // false = "x", true = "/"
+}
+
+class ActivityRow {
+    var dateDay by mutableStateOf("")
+    var time by mutableStateOf("")
+    var place by mutableStateOf("")
+    var activity by mutableStateOf("")
 }
 
 @Composable
@@ -38,7 +44,8 @@ fun App() {
 
         when (currentScreen) {
             "welcome" -> WelcomeScreen(onStartClick = { currentScreen = "input" })
-            "input" -> InputScreen()
+            "input" -> InputScreen(onNextClick = { currentScreen = "activity" })
+            "activity" -> ActivityScreen()
         }
     }
 }
@@ -65,7 +72,7 @@ fun WelcomeScreen(onStartClick: () -> Unit) {
 }
 
 @Composable
-fun InputScreen() {
+fun InputScreen(onNextClick: () -> Unit) {
     var tripTitle by remember { mutableStateOf("") }
     var personCount by remember { mutableStateOf("") }
     val rows = remember { mutableStateListOf(ExpenseRow()) }
@@ -104,7 +111,6 @@ fun InputScreen() {
         )
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Header tabel
         Row(modifier = Modifier.fillMaxWidth()) {
             TableCell("Item", weight = 1f, isHeader = true, borderColor = borderColor)
             TableCell("Harga", weight = 1f, isHeader = true, borderColor = borderColor)
@@ -113,34 +119,21 @@ fun InputScreen() {
 
         LazyColumn(modifier = Modifier.weight(1f)) {
             items(rows) { row ->
-                Row(
-                    modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min)
-                ) {
+                Row(modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min)) {
                     Box(
                         modifier = Modifier.weight(1f).fillMaxHeight().border(1.dp, borderColor),
                         contentAlignment = Alignment.CenterStart
                     ) {
-                        BasicRowInput(
-                            value = row.item,
-                            onValueChange = { row.item = it },
-                            placeholder = "Villa"
-                        )
+                        BasicRowInput(row.item, { row.item = it }, "Villa")
                     }
                     Box(
                         modifier = Modifier.weight(1f).fillMaxHeight().border(1.dp, borderColor),
                         contentAlignment = Alignment.CenterStart
                     ) {
-                        BasicRowInput(
-                            value = row.price,
-                            onValueChange = { row.price = it },
-                            placeholder = "Rp"
-                        )
+                        BasicRowInput(row.price, { row.price = it }, "Rp")
                     }
                     Box(
-                        modifier = Modifier
-                            .weight(1f)
-                            .fillMaxHeight()
-                            .border(1.dp, borderColor),
+                        modifier = Modifier.weight(1f).fillMaxHeight().border(1.dp, borderColor),
                         contentAlignment = Alignment.Center
                     ) {
                         Text("Rp${perPerson(row).toInt()}", fontSize = 12.sp)
@@ -148,6 +141,8 @@ fun InputScreen() {
                 }
             }
         }
+
+        Spacer(modifier = Modifier.height(8.dp))
         OutlinedButton(
             onClick = { rows.add(ExpenseRow()) },
             modifier = Modifier.fillMaxWidth()
@@ -169,22 +164,84 @@ fun InputScreen() {
             style = MaterialTheme.typography.titleMedium,
             color = MaterialTheme.colorScheme.primary
         )
+
+        Spacer(modifier = Modifier.height(16.dp))
+        Button(
+            onClick = onNextClick,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("Lanjut ke Rencana Kegiatan")
+        }
     }
 }
 
 @Composable
-fun RowScope.TableCell(text: String, weight: Float, isHeader: Boolean = false, borderColor: Color) {
+fun ActivityScreen() {
+    val rows = remember { mutableStateListOf(ActivityRow()) }
+    val borderColor = Color(0xFFFF6F61)
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
+            .padding(16.dp)
+    ) {
+        Text(
+            "Rencana Kegiatan",
+            style = MaterialTheme.typography.headlineSmall,
+            fontWeight = FontWeight.Bold
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Row(modifier = Modifier.fillMaxWidth()) {
+            TableCell("Tanggal & Hari", weight = 1.3f, isHeader = true, borderColor = borderColor)
+            TableCell("Jam", weight = 0.8f, isHeader = true, borderColor = borderColor)
+            TableCell("Tempat", weight = 1f, isHeader = true, borderColor = borderColor)
+            TableCell("Kegiatan", weight = 1.3f, isHeader = true, borderColor = borderColor)
+        }
+
+        LazyColumn(modifier = Modifier.weight(1f)) {
+            items(rows) { row ->
+                Row(modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min)) {
+                    Box(modifier = Modifier.weight(1.3f).fillMaxHeight().border(1.dp, borderColor)) {
+                        BasicRowInput(row.dateDay, { row.dateDay = it }, "")
+                    }
+                    Box(modifier = Modifier.weight(0.8f).fillMaxHeight().border(1.dp, borderColor)) {
+                        BasicRowInput(row.time, { row.time = it }, "")
+                    }
+                    Box(modifier = Modifier.weight(1f).fillMaxHeight().border(1.dp, borderColor)) {
+                        BasicRowInput(row.place, { row.place = it }, "")
+                    }
+                    Box(modifier = Modifier.weight(1.3f).fillMaxHeight().border(1.dp, borderColor)) {
+                        BasicRowInput(row.activity, { row.activity = it }, "")
+                    }
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+        OutlinedButton(
+            onClick = { rows.add(ActivityRow()) },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("+ Tambah kegiatan")
+        }
+    }
+}
+
+@Composable
+fun RowScope.TableCell(text: String, weight: Float, isHeader: Boolean, borderColor: Color) {
     Box(
         modifier = Modifier
             .weight(weight)
             .border(1.dp, borderColor)
-            .padding(vertical = 8.dp, horizontal = 4.dp),
+            .padding(vertical = 10.dp),
         contentAlignment = Alignment.Center
     ) {
         Text(
             text,
-            fontSize = 12.sp,
-            fontWeight = if (isHeader) FontWeight.Bold else FontWeight.Normal
+            fontWeight = if (isHeader) FontWeight.Bold else FontWeight.Normal,
+            fontSize = 12.sp
         )
     }
 }
@@ -194,13 +251,13 @@ fun BasicRowInput(value: String, onValueChange: (String) -> Unit, placeholder: S
     BasicTextField(
         value = value,
         onValueChange = onValueChange,
-        textStyle = LocalTextStyle.current.copy(fontSize = 12.sp),
-        modifier = Modifier.fillMaxWidth().padding(8.dp),
-        decorationBox = { innerTextField ->
+        modifier = Modifier.fillMaxWidth().padding(10.dp),
+        textStyle = TextStyle(fontSize = 12.sp),
+        decorationBox = { inner ->
             if (value.isEmpty()) {
                 Text(placeholder, fontSize = 12.sp, color = Color.Gray)
             }
-            innerTextField()
+            inner()
         }
     )
 }
