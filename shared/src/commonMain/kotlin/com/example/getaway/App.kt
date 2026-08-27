@@ -16,7 +16,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-
+import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.fillMaxHeight
 class ExpenseRow {
     var item by mutableStateOf("")
     var price by mutableStateOf("")
@@ -105,22 +106,30 @@ fun InputScreen() {
 
         // Header tabel
         Row(modifier = Modifier.fillMaxWidth()) {
-            TableCell("Item", weight = 1.2f, isHeader = true, borderColor = borderColor)
+            TableCell("Item", weight = 1f, isHeader = true, borderColor = borderColor)
             TableCell("Harga", weight = 1f, isHeader = true, borderColor = borderColor)
             TableCell("Per orang", weight = 1f, isHeader = true, borderColor = borderColor)
         }
 
         LazyColumn(modifier = Modifier.weight(1f)) {
             items(rows) { row ->
-                Row(modifier = Modifier.fillMaxWidth()) {
-                    Box(modifier = Modifier.weight(1.2f).border(1.dp, borderColor)) {
+                Row(
+                    modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min)
+                ) {
+                    Box(
+                        modifier = Modifier.weight(1f).fillMaxHeight().border(1.dp, borderColor),
+                        contentAlignment = Alignment.CenterStart
+                    ) {
                         BasicRowInput(
                             value = row.item,
                             onValueChange = { row.item = it },
                             placeholder = "Villa"
                         )
                     }
-                    Box(modifier = Modifier.weight(1f).border(1.dp, borderColor)) {
+                    Box(
+                        modifier = Modifier.weight(1f).fillMaxHeight().border(1.dp, borderColor),
+                        contentAlignment = Alignment.CenterStart
+                    ) {
                         BasicRowInput(
                             value = row.price,
                             onValueChange = { row.price = it },
@@ -130,8 +139,8 @@ fun InputScreen() {
                     Box(
                         modifier = Modifier
                             .weight(1f)
-                            .border(1.dp, borderColor)
-                            .padding(vertical = 14.dp),
+                            .fillMaxHeight()
+                            .border(1.dp, borderColor),
                         contentAlignment = Alignment.Center
                     ) {
                         Text("Rp${perPerson(row).toInt()}", fontSize = 12.sp)
@@ -139,7 +148,6 @@ fun InputScreen() {
                 }
             }
         }
-
         OutlinedButton(
             onClick = { rows.add(ExpenseRow()) },
             modifier = Modifier.fillMaxWidth()
