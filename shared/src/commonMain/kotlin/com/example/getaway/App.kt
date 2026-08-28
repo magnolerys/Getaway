@@ -215,29 +215,26 @@ fun ActivityScreen(onBackClick: () -> Unit) {
 
         LazyColumn(modifier = Modifier.weight(1f)) {
             items(rows) { row ->
-                Row(modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min)) {
+                Row(
+                    modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
                     Box(modifier = Modifier.weight(1.3f).fillMaxHeight().border(1.dp, borderColor)) {
                         BasicRowInput(row.dateDay, { row.dateDay = it }, "")
                     }
                     Box(modifier = Modifier.weight(0.8f).fillMaxHeight().border(1.dp, borderColor)) {
                         BasicRowInput(row.time, { row.time = it }, "")
                     }
-                    Box(modifier = Modifier.weight(1f).fillMaxHeight().border(1.dp, borderColor)) {
+                    Box(modifier = Modifier.weight(2f).fillMaxHeight().border(1.dp, borderColor)) {
                         BasicRowInput(row.place, { row.place = it }, "")
                     }
-                    Box(modifier = Modifier.weight(1.3f).fillMaxHeight().border(1.dp, borderColor)) {
-                        BasicRowInput(row.activity, { row.activity = it }, "")
-                        Box(
-                            modifier = Modifier.width(32.dp).fillMaxHeight(),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(
-                                "\u2715",
-                                color = Color(0xFFFF6F61),
-                                modifier = Modifier.clickable { rows.remove(row) }
-                            )
-                        }
-                    }
+                    Text(
+                        "\u2715",
+                        color = Color(0xFFFF6F61),
+                        modifier = Modifier
+                            .padding(start = 4.dp)
+                            .clickable { rows.remove(row) }
+                    )
                 }
             }
         }
@@ -248,6 +245,13 @@ fun ActivityScreen(onBackClick: () -> Unit) {
             modifier = Modifier.fillMaxWidth()
         ) {
             Text("+ Tambah kegiatan")
+        }
+        Spacer(modifier = Modifier.height(8.dp))
+        TextButton(
+            onClick = onBackClick,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("\u2190 Kembali")
         }
     }
 }
