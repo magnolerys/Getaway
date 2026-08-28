@@ -2,6 +2,7 @@ package com.example.getaway
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -44,8 +45,11 @@ fun App() {
 
         when (currentScreen) {
             "welcome" -> WelcomeScreen(onStartClick = { currentScreen = "input" })
-            "input" -> InputScreen(onNextClick = { currentScreen = "activity" })
-            "activity" -> ActivityScreen()
+            "input" -> InputScreen(
+                onNextClick = { currentScreen = "activity" },
+                onBackClick = { currentScreen = "welcome" }
+            )
+            "activity" -> ActivityScreen(onBackClick = { currentScreen = "input" })
         }
     }
 }
@@ -72,7 +76,7 @@ fun WelcomeScreen(onStartClick: () -> Unit) {
 }
 
 @Composable
-fun InputScreen(onNextClick: () -> Unit) {
+fun InputScreen(onNextClick: () -> Unit, onBackClick: () -> Unit) {
     var tripTitle by remember { mutableStateOf("") }
     var personCount by remember { mutableStateOf("") }
     val rows = remember { mutableStateListOf(ExpenseRow()) }
@@ -137,6 +141,16 @@ fun InputScreen(onNextClick: () -> Unit) {
                         contentAlignment = Alignment.Center
                     ) {
                         Text("Rp${perPerson(row).toInt()}", fontSize = 12.sp)
+                        Box(
+                            modifier = Modifier.width(32.dp).fillMaxHeight(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                "\u2715",
+                                color = Color(0xFFFF6F61),
+                                modifier = Modifier.clickable { rows.remove(row) }
+                            )
+                        }
                     }
                 }
             }
@@ -176,7 +190,7 @@ fun InputScreen(onNextClick: () -> Unit) {
 }
 
 @Composable
-fun ActivityScreen() {
+fun ActivityScreen(onBackClick: () -> Unit) {
     val rows = remember { mutableStateListOf(ActivityRow()) }
     val borderColor = Color(0xFFFF6F61)
 
@@ -196,8 +210,7 @@ fun ActivityScreen() {
         Row(modifier = Modifier.fillMaxWidth()) {
             TableCell("Tanggal & Hari", weight = 1.3f, isHeader = true, borderColor = borderColor)
             TableCell("Jam", weight = 0.8f, isHeader = true, borderColor = borderColor)
-            TableCell("Tempat", weight = 1f, isHeader = true, borderColor = borderColor)
-            TableCell("Kegiatan", weight = 1.3f, isHeader = true, borderColor = borderColor)
+            TableCell("Tempat & Kegiatan", weight = 2f, isHeader = true, borderColor = borderColor)
         }
 
         LazyColumn(modifier = Modifier.weight(1f)) {
@@ -214,6 +227,16 @@ fun ActivityScreen() {
                     }
                     Box(modifier = Modifier.weight(1.3f).fillMaxHeight().border(1.dp, borderColor)) {
                         BasicRowInput(row.activity, { row.activity = it }, "")
+                        Box(
+                            modifier = Modifier.width(32.dp).fillMaxHeight(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                "\u2715",
+                                color = Color(0xFFFF6F61),
+                                modifier = Modifier.clickable { rows.remove(row) }
+                            )
+                        }
                     }
                 }
             }
