@@ -77,8 +77,8 @@ fun WelcomeScreen(onStartClick: () -> Unit) {
 
 @Composable
 fun InputScreen(onNextClick: () -> Unit, onBackClick: () -> Unit) {
-    var tripTitle by remember { mutableStateOf("") }
-    var personCount by remember { mutableStateOf("") }
+    var tripTitle by remember { mutableStateOf(TripStorage.loadTripTitle()) }
+    var personCount by remember { mutableStateOf(TripStorage.loadPersonCount()) }
     val rows = remember { mutableStateListOf(ExpenseRow()) }
 
     val persons = personCount.toIntOrNull() ?: 0
@@ -186,8 +186,19 @@ fun InputScreen(onNextClick: () -> Unit, onBackClick: () -> Unit) {
         ) {
             Text("Lanjut ke Rencana Kegiatan")
         }
+        Spacer(modifier = Modifier.height(8.dp))
+        OutlinedButton(
+            onClick = {
+                TripStorage.saveTripTitle(tripTitle)
+                TripStorage.savePersonCount(personCount)
+            },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("Simpan")
+        }
     }
 }
+
 
 @Composable
 fun ActivityScreen(onBackClick: () -> Unit) {
